@@ -1,0 +1,145 @@
+import styled from "styled-components";
+import { useEffect, useState } from "react";
+import useSWR from "swr";
+import Image from "next/image";
+
+import { addDataLayer } from "../../map/addDataLayer";
+import { initializeMap } from "../../map/initializeMap";
+import { fetcher } from "../../utils/fetcher";
+
+import HomeIcon from '../assets/HomeIcon';
+import FavoriteIcon from '../assets/FavoriteIcon';
+import HashIcon from '../assets/HashIcon';
+import TrendIcon from '../assets/TrendIcon';
+import UserIcon from '../assets/UserIcon';
+import BellIcon from '../assets/BellIcon';
+
+const mapboxgl = require("mapbox-gl/dist/mapbox-gl.js");
+
+const TimeWrapper = styled.div`
+  position: relative;
+  display: block;
+  margin-left: 500px;
+  height:100vh;
+  background-color: rgba(47,49,54,1);
+  -webkit-transition: all .1s ease;
+  transition: all .1s ease;
+  @media (min-width: 320px) and (max-width: 990px){
+    margin-left:0px;
+  }
+`
+const BottomNav = styled.div`
+  position: fixed;
+  display: block;
+  background-color: rgb(47 49 54 / 0%);
+  -webkit-transition: all .1s ease;
+  -webkit-transition: all .1s ease;
+  transition: all .1s ease;
+  left: 500px;
+  bottom: 60px;
+  height: 70px;
+  width: 100%;
+  @media (min-width: 320px) and (max-width: 990px){
+    left:0px;
+  }
+`
+const BottomNavContainer = styled.div`
+  width: 50%;
+  height:100%;
+  position: relative;
+  margin: 0 auto;
+  @media (min-width: 320px) and (max-width: 990px){
+    width: 380px;
+  }
+  @media (max-width: 580px){
+    width: 340px;
+  }
+  @media (min-width: 1882px){
+    width: 40%;
+  }
+  @media (min-width:990px) and (max-width: 1203px){
+    margin-left: 10px;
+  }
+`
+const BottomNavContainerItem = styled.div`
+  width: inherit;
+  height: inherit;
+  max-width: 340px;
+  padding: 8px;
+  padding-top: 11px;
+  background: rgba(11,15,32,1);
+  border-radius: 33px;
+  @media (min-width:990px) and (max-width: 1203px){
+    width: 246px;
+  }
+  @media (min-width: 1204px){
+    width: 301px;
+  }
+`
+
+function Main({}) {
+    const [pageIsMounted, setPageIsMounted] = useState(false);
+    const [Map, setMap] = useState();
+    const { data, error } = useSWR("/api/live", fetcher);
+
+    if (error) {
+        console.error(error);
+      }
+    
+      mapboxgl.accessToken =
+        "pk.eyJ1Ijoia3Vyb3NhayIsImEiOiJja3A0cnI1MDkyM2xkMnZtd2QzczVicjZuIn0.tRWh9CIfJuBhxu92LxZGrA";
+    
+      useEffect(() => {
+        setPageIsMounted(true);
+        let map = new mapboxgl.Map({
+          container: "mapbook",
+          style: "mapbox://styles/kurosak/ckp4vzi5g0fqr18lsjiafqk8f",
+          center: [126.97688884274817,37.575650779448786],
+          zoom: 8,
+        });
+    
+        initializeMap(mapboxgl, map);
+        setMap(map);
+      }, []);
+    
+      useEffect(() => {
+        if (pageIsMounted && data) {
+          Map.on("load", function () {
+            addDataLayer(Map, data);
+          });
+        }
+      }, [pageIsMounted, setMap, data, Map]);
+    
+    return(
+      <>
+      <TimeWrapper className="Timew">
+        <div id="mapbook">
+        </div>
+      </TimeWrapper>
+      <BottomNav>
+        <BottomNavContainer>
+          <BottomNavContainerItem>
+                    <div className="flex content-center flex-wrap">
+                            <div className="bottom_nav_set bottom_nav_item active">
+                              <HomeIcon />
+                            </div>
+                            <div className="bottom_nav_set bottom_nav_item">
+                              <TrendIcon />
+                            </div>
+                            <div className="bottom_nav_set bottom_nav_item">
+                              <BellIcon />
+                            </div>
+                            <div className="bottom_nav_set bottom_nav_item">
+                              <HashIcon />
+                            </div>
+                            <div className="bottom_nav_set bottom_nav_item">
+                              <UserIcon />
+                            </div>
+                    </div>
+          </BottomNavContainerItem>
+        </BottomNavContainer>
+      </BottomNav>
+      </>
+    )
+}
+export default Main;
